@@ -20,6 +20,7 @@ def input():
 
     return corner_dict, edge_dict
 
+
 def build_unsetups(piece_setups):
     piece_unsetups = {}
 
@@ -33,6 +34,7 @@ def build_unsetups(piece_setups):
         piece_unsetups[position] = unsetup
 
     return piece_unsetups
+
 
 def initialize_piece(piece_dict, piece_str):
     positions = piece_str.split('_')
@@ -48,6 +50,7 @@ def build_piece_soln(solved_piece_list):
         for position, soln in piece.items():
             full_soln[position] = soln
     return full_soln
+
 
 def build_step_list(buffer, piece_list, full_piece_soln):
     current_pos = buffer
@@ -86,6 +89,53 @@ def build_step_list(buffer, piece_list, full_piece_soln):
             solved = True
 
     return step_list
+
+
+def optimize_list(move_list):
+    move_list = move_list.split(' ')
+    move_list.append("placeholder")
+
+    for move in move_list:
+        if move == "":
+            move_list.remove("")
+
+    for index in range(len(move_list) - 2, -1, -1):
+        current_move = move_list[index]
+        next_move = move_list[index + 1]
+
+        if current_move == next_move + "'" or next_move == current_move + "'":
+            move_list.pop(index + 1)
+            move_list.pop(index)
+
+        if current_move == next_move + "2":
+            move_list[index] = next_move + "'"
+            move_list.pop(index + 1)
+        elif next_move == current_move + "2":
+            move_list[index] = current_move + "'"
+            move_list.pop(index + 1)
+        else:
+            current_move_ = current_move.split("'")[0]
+            next_move_ = next_move.split("'")[0]
+
+            if current_move_ == next_move_ + "2":
+                move_list[index] = next_move_
+                move_list.pop(index + 1)
+            if next_move_ == current_move_ + "2":
+                move_list[index] = current_move_
+                move_list.pop(index + 1)
+
+        if current_move == next_move:
+            if current_move == current_move.split("2")[0]:
+                move_list[index] = current_move.split("'")[0] + "2"
+                move_list.pop(index + 1)
+            else:
+                move_list.pop(index + 1)
+                move_list.pop(index)
+
+    move_list.remove("placeholder")
+    move_list = " ".join(move_list)
+    return move_list
+
 
 corner_setups = {
     "B": "R2",
@@ -263,5 +313,8 @@ if parity:
 else:
     full_move_list = corner_move_list + " " + edge_move_list
 
+full_move_list = optimize_list(full_move_list)
+
 print("Here is the solution. Assume the green side is facing you and the white side is facing up.")
-print (full_move_list)
+print(full_move_list)
+print("\nSolved in %d moves." % len(full_move_list.split(" ")))
